@@ -950,6 +950,64 @@ UNION ; c800
 wOverworldMapBlocks:: ds 1300 ; c800
 wOverworldMapBlocksEnd::
 
+NEXTU
+; Assumes map blockdata for Pokécenters never exceed 308 bytes (size of PCC).
+	ds 308 ; may contain map blockdata
+
+wMobilePacket::
+wMobilePacketCommand:: db
+wMobilePacketSize:: db
+wMobilePacketContent:: ds MOBILE_MAX_PACKET_SIZE
+wMobilePacketChecksum:: dw
+wMobilePacketDevice:: db
+wMobilePacketResult:: db
+wMobilePacketProgress:: db ; overall packet progress
+wMobilePendingData:: db ; packet offset (TODO: handle 245-254B of content)
+wMobileConnectionID:: db
+
+wMobileSessionEnabled:: db ; used to check if we're connected to a MA
+wMobileDNSResponse:: ds 4 ; IP returned from DNS query
+
+wPO_Data::
+wPO_Command:: db
+
+UNION
+; generic lowlevel representation for exchanging server data
+wPO_Content:: ds 254
+wPO_ResponseSize:: db
+NEXTU
+; battle command + rng stream
+wPO_BattleCommand:: db
+wPO_RNGStream:: ds 15
+NEXTU
+; user table from LISTUSERS
+wPO_UserCount:: db
+wPO_Users::
+wPO_User1::
+wPO_User1ServerID:: db
+wPO_User1PlayerID:: dw
+wPO_User1Name:: ds NAME_LENGTH
+wPO_User2::
+wPO_User2ServerID:: db
+wPO_User2PlayerID:: dw
+wPO_User2Name:: ds NAME_LENGTH
+; these are all the useful labels, but there can be further users
+ENDU
+
+wPO_UserID:: db
+wPO_RequestTimer:: db
+
+; an "is host" isn't enough, in case we're spectating
+wPO_BattlePlayer1ID:: db
+wPO_BattlePlayer2ID:: db
+
+; RNG provided by server, this is the RNG pointer in case we need to
+; demand more numbers
+wPO_RNGPointer:: db
+
+; current battle log pointer, useful for spectators
+wPO_BattleLog:: dw
+
 NEXTU ; c800
 ; GB Printer screen RAM
 wGameboyPrinterRAM::
@@ -2305,7 +2363,7 @@ wMonTriedToEvolve:: db
 
 wTimeOfDay:: db ; d269
 
-	ds 1
+wOTPlayerGender:: db
 
 
 SECTION "Enemy Party", WRAMX
@@ -2324,6 +2382,8 @@ NEXTU ; d26b
 wOTPlayerName:: ds NAME_LENGTH ; d26b
 wOTPlayerID:: dw ; d276
 	ds 8
+
+wOTPokemonData::
 wOTPartyCount::   db ; d280
 wOTPartySpecies:: ds PARTY_LENGTH ; d281
 wOTPartyEnd::     db ; older code doesn't check PartyCount
@@ -2365,7 +2425,7 @@ ENDU ; d430
 wd430:: ; mobile
 wBattleAction:: db ; d430
 
-wd431:: db ; mobile
+wLinkBattleSentAction:: db
 wMapStatus:: db ; d432
 wMapEventStatus:: db ; d433
 
@@ -3088,6 +3148,12 @@ NEXTU ; dd68
 	ds $98
 w3_de00:: ds $200
 ENDU ; e000
+
+
+SECTION "Mobile Adapter Config", WRAMX
+
+wMobileConfig:: ds MOBILE_CONFIGURATION_SIZE
+wMobileIP:: ds 4
 
 
 SECTION "GBC Video", WRAMX, ALIGN[8]

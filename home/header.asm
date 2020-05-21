@@ -15,7 +15,8 @@ Bankswitch::
 	ret
 
 SECTION "rst18", ROM0[$0018]
-	rst $38
+FarCall2::
+	jp RstFarCall
 
 SECTION "rst20", ROM0[$0020]
 	rst $38

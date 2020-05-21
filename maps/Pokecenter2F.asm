@@ -581,6 +581,83 @@ Script_LeftTimeCapsule:
 	setmapscene TIME_CAPSULE, SCENE_DEFAULT
 	end
 
+LinkReceptionistScript_Mobile:
+if !DEF(DEBUG)
+	checkevent EVENT_GAVE_MYSTERY_EGG_TO_ELM
+	iffalse Script_MobileSystemClosed
+endc
+	opentext
+	writetext Text_MobileReceptionistIntro
+	yesorno
+	iffalse .Cancel
+	writetext Text_PleaseWait
+	special Mobile_Init
+	special Special_CheckMobileAvailability
+	iffalse .AdapterNotConnected
+	writetext Text_MustSaveGame
+	yesorno
+	iffalse .Aborted
+	special TryQuickSave
+	iffalse .Aborted
+	writetext Text_ConnectingToServer
+	callasm PCMA_ConnectAndListPlayers
+	ifequal $1, .Aborted
+	ifequal $2, .ConnectionLost
+	ifequal $3, .ISPLoginFailure
+	scall Pokecenter2F_CheckGender
+	warpcheck
+	end
+
+.AdapterNotConnected:
+	writetext Text_AdapterNotConnected
+	jump .AbortLink
+
+.ISPLoginFailure:
+	writetext Text_FailedISPLogin
+	jump .AbortLink
+.ConnectionLost:
+	writetext Text_ConnectionLost
+.Aborted:
+	writetext Text_PleaseComeAgain
+.AbortLink:
+	special Mobile_Abort
+.Cancel:
+	closetext
+	end
+
+PCMA_ConnectAndListPlayers:
+	; Login to ISP
+	farcall Mobile_ISPLogin
+	ld a, 3
+	ld [wScriptVar], a
+	ret z
+
+	; Connect to online server
+	farcall PO_Connect
+	jr z, .cannot_connect
+	ld a, 1
+	ld [wScriptVar], a
+	ret
+
+.cannot_connect
+	ld a, 2
+	ld [wScriptVar], a
+	ret
+
+Script_MobileSystemClosed:
+	faceplayer
+	opentext
+	writetext Text_MobileSystemClosed
+	waitbutton
+	closetext
+	end
+
+Text_MobileSystemClosed:
+	text "I'm sorry--the"
+	line "Mobile System is"
+	cont "being adjusted."
+	done
+
 Pokecenter2FLinkRecordSign:
 	refreshscreen
 	special DisplayLinkRecord
@@ -818,6 +895,17 @@ Text_ThisWayToMobileRoom:
 	line "MOBILE ROOM."
 	done
 
+Text_MobileReceptionistIntro:
+	text "Welcome to the"
+	line "Mobile System."
+
+	para "You may connect to"
+	line "the Internet here."
+
+	para "Would you like to"
+	line "connect?"
+	done
+
 Text_BattleReceptionistIntro:
 	text "Welcome to CABLE"
 	line "CLUB COLOSSEUM."
@@ -858,6 +946,30 @@ YourFriendIsNotReadyText:
 	line "ready."
 	prompt
 
+Text_AdapterNotConnected:
+	text "The Mobile Adapter"
+	line "isn't connected."
+
+	para "Please refer to"
+	line "the manual for"
+	cont "this game for how"
+	cont "to connect."
+	prompt
+
+Text_ConnectionLost:
+	text "Can't connect to"
+	line "Polished Online."
+	prompt
+
+Text_FailedISPLogin:
+	text "Failed to connect"
+	line "to ISP."
+
+	para "Make sure your"
+	line "Mobile Adapter is"
+	cont "set up correctly."
+	prompt
+
 Text_MustSaveGame:
 	text "Before opening the"
 	line "link, you must"
@@ -866,6 +978,11 @@ Text_MustSaveGame:
 
 Text_PleaseWait:
 	text "Please wait."
+	done
+
+Text_ConnectingToServer:
+	text "Connecting to"
+	line "Polished Online…"
 	done
 
 Text_LinkTimedOut:
@@ -1039,5 +1156,5 @@ Pokecenter2F_MapEvents:
 	db 4 ; object events
 	object_event  5,  2, SPRITE_LINK_RECEPTIONIST, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, LinkReceptionistScript_Trade, -1
 	object_event  9,  2, SPRITE_LINK_RECEPTIONIST, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, LinkReceptionistScript_Battle, -1
-	object_event 13,  3, SPRITE_LINK_RECEPTIONIST, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, LinkReceptionistScript_TimeCapsule, -1
+	object_event 13,  3, SPRITE_LINK_RECEPTIONIST, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, PAL_NPC_GREEN, OBJECTTYPE_SCRIPT, 0, LinkReceptionistScript_Mobile, -1
 	object_event  1,  1, SPRITE_OFFICER, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, OBJECTTYPE_SCRIPT, 0, Pokecenter2FOfficerScript, EVENT_MYSTERY_GIFT_DELIVERY_GUY

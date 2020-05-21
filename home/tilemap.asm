@@ -57,6 +57,11 @@ CGBOnly_CopyTilemapAtOnce::
 	and a
 	jr z, WaitBGMap
 
+SafeCopyTilemapAtOnce::
+	ld a, b
+	cp 2
+	call z, SetPalettes
+	; fallthrough
 CopyTilemapAtOnce::
 	jr _CopyTilemapAtOnce
 

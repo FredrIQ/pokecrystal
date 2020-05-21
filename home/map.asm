@@ -699,6 +699,11 @@ endr
 LoadBlockData::
 	ld hl, wOverworldMapBlocks
 	ld bc, wOverworldMapBlocksEnd - wOverworldMapBlocks
+	ld a, [hMobile]
+	and a
+	jr z, .got_bytecount
+	ld bc, 308
+.got_bytecount
 	ld a, 0
 	call ByteFill
 	call ChangeMap

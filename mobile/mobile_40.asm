@@ -84,7 +84,7 @@ EnableMobile:
 	ldh [hLCDCPointer], a
 	ld a, $01
 	ldh [hMobileReceive], a
-	ldh [hMobile], a
+	ldh [hOldMobile], a
 	ei
 
 	ret
@@ -93,7 +93,7 @@ DisableMobile:
 	di
 	xor a
 	ldh [hMobileReceive], a
-	ldh [hMobile], a
+	ldh [hOldMobile], a
 	xor a
 	ldh [hVBlank], a
 	call NormalSpeed
@@ -164,7 +164,7 @@ Function1000fa:
 	ldh [rIE], a
 	xor a
 	ldh [hMobileReceive], a
-	ldh [hMobile], a
+	ldh [hOldMobile], a
 	ei
 
 	ld a, [wLinkMode]
@@ -1527,26 +1527,42 @@ Function1009f3:
 	xor a
 	ret
 
+_LinkBattleSendRaw:
+	ld a, [wBattleAction]
+	push af
+	ld a, b
+	call BattleDoSendLink
+	pop af
+	ld [wBattleAction], a
+	ret
+
 _LinkBattleSendReceiveAction:
-	call .StageForSend
-	ld [wd431], a
+	call LinkBattle_StageForSend
+BattleDoSendLink:
+	ld [wLinkBattleSentAction], a
+	call MobileLinkTransfer ; new mobile
+	ret c
+	ret nz
 	farcall PlaceWaitingText
+	jr LinkBattle_SendReceiveAction
+
+	; unused old code
 	ld a, [wLinkMode]
 	cp LINK_MOBILE
 	jr nz, .not_mobile
 
-	call .MobileBattle_SendReceiveAction
+	call MobileBattle_SendReceiveAction
 	call Function100da5
 	farcall FinishBattleAnim
 	jr .done
 
 .not_mobile
-	call .LinkBattle_SendReceiveAction
+	call LinkBattle_SendReceiveAction
 
 .done
 	ret
 
-.StageForSend:
+LinkBattle_StageForSend:
 	ld a, [wBattlePlayerAction]
 	and a ; BATTLEPLAYERACTION_USEMOVE?
 	jr nz, .switch
@@ -1572,8 +1588,8 @@ _LinkBattleSendReceiveAction:
 	and $0f
 	ret
 
-.LinkBattle_SendReceiveAction:
-	ld a, [wd431]
+LinkBattle_SendReceiveAction:
+	ld a, [wLinkBattleSentAction]
 	ld [wPlayerLinkAction], a
 	ld a, $ff
 	ld [wOtherPlayerLinkAction], a
@@ -1602,7 +1618,7 @@ _LinkBattleSendReceiveAction:
 	ld [wBattleAction], a
 	ret
 
-.MobileBattle_SendReceiveAction:
+MobileBattle_SendReceiveAction:
 	call Function100acf
 	call StartMobileInactivityTimer
 	ld a, 0
@@ -1639,10 +1655,36 @@ _LinkBattleSendReceiveAction:
 .asm_100ace
 	ret
 
+MobileLinkTransfer:
+; Returns z if not on mobile, c if disconnected
+	ldh a, [hMobile]
+	and a
+	ret z
+	ld a, [wLinkBattleSentAction]
+	and $f
+	cp BATTLEACTION_NEWRANDOM
+	jr z, .firstloop
+	ld hl, BattleText_WaitingForOpponent
+	call StdBattleTextbox
+	jr .firstloop
+
+.loop
+	ld c, 60
+	call DelayFrames
+.firstloop
+	ld a, PO_CMD_BATTLETURN
+	farcall2 PO_ServerCommand
+	ret c
+	jr z, .loop
+	ld a, [wOtherPlayerLinkAction]
+	ld [wBattleAction], a
+	or 1
+	ret
+
 Function100acf:
 	ld de, Unknown_100b0a
 	ld hl, wccb5
-	ld a, [wd431]
+	ld a, [wLinkBattleSentAction]
 	ld [hli], a
 	ld c, $01
 .asm_100adb

@@ -988,7 +988,7 @@ Function106442:
 	ld a, $36
 	call Function3e32
 	xor a
-	ldh [hMobile], a
+	ldh [hOldMobile], a
 	ldh [hMobileReceive], a
 	ld a, [wMobileCommsJumptableIndex]
 	inc a

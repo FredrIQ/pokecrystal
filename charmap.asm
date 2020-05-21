@@ -2,6 +2,8 @@
 
 ; Control characters (see home/text.asm)
 
+	newcharmap default
+
 	charmap "<NULL>",    $00
 	charmap "<PLAY_G>",  $14 ; "<PLAYER>くん" or "<PLAYER>ちゃん"; same as "<PLAYER>" in English
 	charmap "<MOBILE>",  $15
@@ -417,7 +419,29 @@
 	charmap "８", $fe
 	charmap "９", $ff
 
+	setcharmap default
+
 ; ASCII charmap, for mobile functions
 pushc
 newcharmap ascii
 popc
+
+asciichar: MACRO
+	setcharmap ascii
+	rept _NARG
+		db \1
+		shift
+	endr
+	setcharmap default
+ENDM
+
+asciistr: MACRO
+	setcharmap ascii
+	rept _NARG
+		db \1
+		shift
+	endr
+	; null terminator
+	db 0
+	setcharmap default
+ENDM

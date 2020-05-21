@@ -471,7 +471,7 @@ BattleTowerRoomMenu_InitRAM:
 	ldh [rIE], a
 	ld a, $1
 	ldh [hMobileReceive], a
-	ldh [hMobile], a
+	ldh [hOldMobile], a
 	ei
 	farcall Stubbed_Function106462
 	farcall Function106464
@@ -499,7 +499,7 @@ BattleTowerRoomMenu_Cleanup:
 	di
 	xor a
 	ldh [hMobileReceive], a
-	ldh [hMobile], a
+	ldh [hOldMobile], a
 	ldh [hVBlank], a
 	call NormalSpeed
 	xor a

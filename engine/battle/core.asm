@@ -5935,6 +5935,10 @@ CheckEnemyLockedIn:
 	bit SUBSTATUS_ROLLOUT, [hl]
 	ret
 
+LinkBattleSendRaw:
+	ld b, a
+	farcall _LinkBattleSendRaw
+
 LinkBattleSendReceiveAction:
 	farcall _LinkBattleSendReceiveAction
 	ret
@@ -6882,6 +6886,36 @@ _BattleRandom::
 	and a
 	jp z, Random
 
+	ldh a, [hMobile]
+	and a
+	jr z, .link_rng
+
+	; Uses random numbers provided by the server
+	push hl
+	push de
+	push bc
+.got_newrng
+	ld a, [wPO_RNGPointer]
+	ld c, a
+	inc a
+	and $f
+	jr z, .request_new_numbers
+	ld [wPO_RNGPointer], a
+	ld b, 0
+	ld hl, wPO_RNGStream
+	add hl, bc
+	ld a, [hl]
+	pop bc
+	pop de
+	pop hl
+	ret
+
+.request_new_numbers
+	ld a, BATTLEACTION_NEWRANDOM
+	call LinkBattleSendRaw
+	jr .got_newrng
+
+.link_rng
 ; The PRNG operates in streams of 10 values.
 
 ; Which value are we trying to pull?

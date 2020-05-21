@@ -30,6 +30,12 @@ SpecialsPointers::
 	add_special GetMysteryGiftItem
 	add_special UnlockMysteryGift
 
+; Mobile Communications
+	add_special Mobile_Init
+	add_special Mobile_Abort
+	add_special Mobile_ISPLogin
+	add_special Special_CheckMobileAvailability
+
 ; Map events
 	add_special BugContestJudging
 	add_special CheckPartyFullAfterContest

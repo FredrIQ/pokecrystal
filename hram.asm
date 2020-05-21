@@ -22,7 +22,7 @@ hMinutes:: db ; ff96
 hSeconds:: db ; ff98
 	ds 1
 
-	ds 1
+hFarCallSavedA:: db ; ff9a
 
 hVBlankCounter:: db ; ff9b
 
@@ -142,7 +142,8 @@ hSPBuffer::  dw ; ffd9
 hBGMapUpdate::    db ; ffdb
 hBGMapTileCount:: db ; ffdc
 
-	ds 1
+; New mobile code
+hMobile:: db ; ffdd
 
 hMapAnims::      db ; ffde
 hTileAnimFrame:: db ; ffdf
@@ -164,6 +165,6 @@ hCGB::          db ; ffe6
 hSGB::          db ; ffe7
 
 hDMATransfer:: db ; ffe8
-hMobile:: db ; ffe9
+hOldMobile:: db ; ffe9
 hSystemBooted:: db ; ffea
 hClockResetTrigger:: db ; ffeb

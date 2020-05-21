@@ -71,7 +71,7 @@ Timer::
 	push de
 	push hl
 
-	ldh a, [hMobile]
+	ldh a, [hOldMobile]
 	and a
 	jr z, .pop_ret
 
@@ -122,20 +122,20 @@ Timer::
 	pop af
 	reti
 
-Unreferenced_Function3ed7::
-	ld [$dc02], a
-	ldh a, [hROMBank]
-	push af
-	ld a, BANK(Function114243)
-	rst Bankswitch
+;Unreferenced_Function3ed7::
+;	ld [$dc02], a
+;	ldh a, [hROMBank]
+;	push af
+;	ld a, BANK(Function114243)
+;	rst Bankswitch
 
-	call Function114243
-	pop bc
-	ld a, b
-	rst Bankswitch
+;	call Function114243
+;	pop bc
+;	ld a, b
+;	rst Bankswitch
 
-	ld a, [$dc02]
-	ret
+;	ld a, [$dc02]
+;	ret
 
 Function3eea::
 	push hl
@@ -152,30 +152,30 @@ Function3eea::
 	call MobileHome_PlaceBox
 	ret
 
-Unreferenced_Function3efd::
-	push hl
-	hlcoord 0, 12
-	ld b, 4
-	ld c, 18
-	call .fill_attr
-	pop hl
-	call PrintTextboxText
-	ret
+;Unreferenced_Function3efd::
+;	push hl
+;	hlcoord 0, 12
+;	ld b, 4
+;	ld c, 18
+;	call .fill_attr
+;	pop hl
+;	call PrintTextboxText
+;	ret
 
-.fill_attr
-	push hl
-	push bc
-	ld de, wAttrmap - wTilemap
-	add hl, de
-	inc b
-	inc b
-	inc c
-	inc c
-	call Function3f35
-	pop bc
-	pop hl
-	call TextboxBorder
-	ret
+;.fill_attr
+;	push hl
+;	push bc
+;	ld de, wAttrmap - wTilemap
+;	add hl, de
+;	inc b
+;	inc b
+;	inc c
+;	inc c
+;	call Function3f35
+;	pop bc
+;	pop hl
+;	call TextboxBorder
+;	ret
 
 Function3f20::
 	hlcoord 0, 0, wAttrmap
@@ -296,3 +296,72 @@ Function3f9f::
 	dec c
 	jr nz, .row
 	ret
+
+SendMobileString::
+; Sends ASCII string in hl up to but not including null terminator as a packet,
+; using a as packet command.
+	ld [wMobilePacketCommand], a
+	ld de, wMobilePacketContent
+	call Copy256ASCII
+	ld b, c
+	ld a, [wMobilePacketCommand]
+	farjp SendMobileBytesFromContent
+
+DNSQuery::
+; Performs a DNS lookup of domain in hl. Returns z if unsuccessful
+	ld a, MOBILE_COMMAND_DNS_QUERY
+	call SendMobileString
+	farcall2 AwaitMobileResponse
+	call CheckMobileError
+	ret z
+	ld hl, wMobilePacketContent
+	ld de, wMobileDNSResponse
+	ld bc, 4
+	call CopyBytes
+	or 1
+	ret
+
+ConnectToDomain::
+; Connects to domain in hl with port bc
+	push bc
+	call DNSQuery
+	pop bc
+	ld hl, wMobileDNSResponse
+ConnectToIP::
+; Connects to IP in hl with port bc. Returns z if connection was unsuccessful
+	ld de, wMobilePacketContent
+	push bc
+	ld bc, 4
+	call CopyBytes
+	pop bc
+	ld a, b
+	ld [wMobilePacketContent + 4], a
+	ld a, c
+	ld [wMobilePacketContent + 5], a
+	ld b, 6
+	ld a, MOBILE_COMMAND_OPEN_TCP_CONNECTION
+	farcall2 SendAndWait
+	; fallthrough
+CheckMobileError:
+	ld a, [wMobilePacketCommand]
+	xor $80
+	cp MOBILE_ERROR_COMMAND
+	ret
+
+Copy256ASCII:
+	ld bc, 0
+.loop
+	ld a, [hli]
+	and a
+	ret z
+	ld [de], a
+	inc de
+	inc bc
+	ld a, b
+	and a
+	ret nz
+	jr .loop
+
+Crash::
+; does not exist in vailla, so just jump to rst0
+    rst $0

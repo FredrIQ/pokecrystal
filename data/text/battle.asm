@@ -1,5 +1,15 @@
 BattleText:: ; used only for BANK(BattleText)
 
+BattleText_WaitingForOpponent:
+	text "Waiting for"
+	line "opponent…"
+	prompt
+
+BattleText_WaitingForPlayers:
+	text "Waiting for"
+	line "players…"
+	prompt
+
 BattleText_PlayerPickedUpPayDayMoney:
 	text "<PLAYER> picked up"
 	line "¥@"

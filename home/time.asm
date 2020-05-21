@@ -2,7 +2,7 @@
 
 Unreferenced_Timer::
 	push af
-	ldh a, [hMobile]
+	ldh a, [hOldMobile]
 	and a
 	jr z, .not_mobile
 	call Timer

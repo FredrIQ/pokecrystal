@@ -533,6 +533,11 @@ INCLUDE "engine/battle/used_move_text.asm"
 INCLUDE "mobile/mobile_41.asm"
 INCLUDE "engine/gfx/load_overworld_font.asm"
 
+SECTION "New Mobile Communication", ROMX
+
+INCLUDE "engine/mobile/serial.asm"
+INCLUDE "engine/mobile/server.asm"
+
 
 SECTION "mobile42", ROMX
 

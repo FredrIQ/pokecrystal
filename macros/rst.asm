@@ -10,6 +10,16 @@ callfar: MACRO ; address, bank
 	rst FarCall
 ENDM
 
+farcall2: MACRO ; bank, address
+	rst FarCall2
+	dbw BANK(\1), \1
+ENDM
+
+farjp: MACRO ; bank, address
+	rst FarCall2
+	dbw BANK(\1) | $80, \1
+ENDM
+
 homecall: MACRO
 	ldh a, [hROMBank]
 	push af
